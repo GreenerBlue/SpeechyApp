@@ -13,12 +13,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Look For Music"
-        android:id="@+id/button2"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="35dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true"
+        android:id="@+id/searchMusicBtn"
         android:onClick="searchMusic"
 
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="39dp"
+        android:layout_alignParentStart="true" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/listView"
+        android:layout_below="@+id/searchMusicBtn"
+        android:layout_centerHorizontal="true"
         />
+
 </RelativeLayout>

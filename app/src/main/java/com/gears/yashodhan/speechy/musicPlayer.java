@@ -1,6 +1,7 @@
 package com.gears.yashodhan.speechy;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,8 +9,8 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -20,18 +21,27 @@ public class musicPlayer extends AppCompatActivity {
 
 
     static private final String TAG = "musicPlayerActivity";
-    private List<String> paths = new ArrayList<String>();
+    private List<MusicFileData> paths = new ArrayList<>();
     private ListView lv;
-    private ArrayAdapter<String> adapter;
-
+    private ArrayAdapter<MusicFileData> adapter;
+    private Context mContext;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         setContentView(R.layout.activity_music_player);
 
         lv = (ListView) findViewById(R.id.listView);
-        adapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, paths);
+        adapter = new MusicAdapter(this, paths);
         lv.setAdapter(adapter);
+
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(mContext,"Clicked on " + i,Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
@@ -45,13 +55,9 @@ public class musicPlayer extends AppCompatActivity {
         Cursor cur = cr.query(uri, null, selection, null, sortOrder);
         int count = 0;
 
-        if(paths.size()!=0)
-          switch (v.getId()){
-              case R.id.searchMusicBtn:
-
-                  break;
-
-          }
+        if(paths.size()!=0){
+            //TODO: add some code prevent the rescanning of the same music files
+        }
         if(cur != null)
         {
             count = cur.getCount();
@@ -60,10 +66,15 @@ public class musicPlayer extends AppCompatActivity {
             {
                 while(cur.moveToNext())
                 {
+
                     String data = cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.DATA));
+                    String title = cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                    //String albumArt = cur.getString(cur.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM_ART));
+                    String albumArt = "hello";
                     // Add code to get more column here
-                    //paths.add(data);
-                    adapter.add(data);
+                    //paths.add(new MusicFileData(title,albumArt,data));
+                    //adapter.notifyDataSetChanged();
+                    adapter.add(new MusicFileData(title,albumArt,data));
                     // Save to your list here
                     Log.d(TAG,data);
                 }

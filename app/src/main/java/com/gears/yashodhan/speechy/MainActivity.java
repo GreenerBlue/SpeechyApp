@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             int s = data.size()-1;
             spText.setText(String.valueOf(data.get(s)));
             if(data.size()!=0) {
-                if ( data.get(data.size() - 1).equals("play music")) {
+                if ( data.get(data.size() - 1).toString().toLowerCase().equals("play music")) {
                     Intent i = new Intent(mContext, musicPlayer.class);
                     mText.setText("starting activity");
                     startActivity(i);
