@@ -13,6 +13,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +24,14 @@ public class MainActivity extends AppCompatActivity {
     TextView spText;
     ArrayList data;
     SpeechRecognizer speechRecog;
+
+    String VoicePattern = "\\wlay\\smusi[ck]";
+    String LocationPattern = "where\\s?am\\s?[iI]";
+    String CombinedPattern = VoicePattern + "|" + LocationPattern;
+
+    Pattern r,s1,t;
+
+    Context mContext = this;
     //End of Vars
 
     @Override
@@ -30,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mText = (TextView) findViewById(R.id.errorText);
         spText = (TextView) findViewById(R.id.speechText);
+        r = Pattern.compile(VoicePattern);
+        s1 = Pattern.compile(LocationPattern);
+        t = Pattern.compile(CombinedPattern);
+        Toast.makeText(mContext,"Created",Toast.LENGTH_SHORT);
     }
 
     public void initVoiceRecog(View v){
@@ -42,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,"voice.recognition.test");
-
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5);
         speechRecog.cancel();
         speechRecog.startListening(intent);
@@ -55,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         speechRecog.stopListening();
         speechRecog.destroy();
     }
-    Context mContext = this;
+
     public class listener implements RecognitionListener{
 
         public void onReadyForSpeech(Bundle params)
@@ -98,11 +111,19 @@ public class MainActivity extends AppCompatActivity {
             int s = data.size()-1;
             spText.setText(String.valueOf(data.get(s)));
             if(data.size()!=0) {
-                if ( data.get(data.size() - 1).toString().toLowerCase().equals("play music")) {
+                Matcher m = r.matcher(data.get(data.size() - 1).toString().toLowerCase());
+                Matcher n = s1.matcher(data.get(data.size() - 1).toString().toLowerCase());
+                if ( m.find()) {
                     Intent i = new Intent(mContext, musicPlayer.class);
                     mText.setText("starting activity");
                     startActivity(i);
                 }
+                if(n.find()){
+                    Intent i = new Intent(mContext,GPSLocatorActivity.class);
+                    mText.setText("Starting Activity");
+                    startActivity(i);
+                }
+
             }
         }
         public void onPartialResults(Bundle partialResults)

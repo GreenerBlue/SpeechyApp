@@ -23,21 +23,15 @@ public class MusicAdapter extends ArrayAdapter<MusicFileData> {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-        if(convertView == null){
-            // some init stuff
+        // some init stuff
             convertView = layoutInflater.inflate(R.layout.music_row_layout,parent,false);
             String musicTitle = getItem(position).title;
             TextView textView = (TextView) convertView.findViewById(R.id.musicTitle);
             textView.setText(musicTitle);
-
-//            String artImage = getItem(position).albumArt;
-//            ImageView imageView = (ImageView) convertView.findViewById(R.id.albumImage);
-//            imageView.setImageURI(Uri.parse(artImage));
-        }
-        else {
-            // some changes that take place during a refresh
-        }
-
+//            //TODO: Create or find albumart and load it onto the imageview
+////            String artImage = getItem(position).albumArt;
+////            ImageView imageView = (ImageView) convertView.findViewById(R.id.albumImage);
+////            imageView.setImageURI(Uri.parse(artImage));
         return convertView;
     }
 }

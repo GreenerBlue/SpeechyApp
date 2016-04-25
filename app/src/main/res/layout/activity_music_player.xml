@@ -9,6 +9,16 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.gears.yashodhan.speechy.musicPlayer">
 
+
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/listView"
+        android:layout_below="@+id/searchMusicBtn"
+        android:layout_centerHorizontal="true"
+        />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,13 +30,4 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="39dp"
         android:layout_alignParentStart="true" />
-
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/listView"
-        android:layout_below="@+id/searchMusicBtn"
-        android:layout_centerHorizontal="true"
-        />
-
 </RelativeLayout>
