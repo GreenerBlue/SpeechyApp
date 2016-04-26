@@ -3,35 +3,23 @@ package com.gears.yashodhan.speechy;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-public class GPSLocatorActivity extends FragmentActivity implements OnMapReadyCallback,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class GPSLocatorActivity extends FragmentActivity implements OnMapReadyCallback
+        , GoogleMap.OnMyLocationButtonClickListener {
 
     static final private String TAG = "MapActivity";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
     private Context mContext;
-    private Location mLastLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,55 +29,9 @@ public class GPSLocatorActivity extends FragmentActivity implements OnMapReadyCa
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        if (mGoogleApiClient == null) {
-            // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
-            // See https://g.co/AppIndexing/AndroidStudio for more information.
-            mGoogleApiClient = new GoogleApiClient.Builder(mContext)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .addApi(AppIndex.API).build();
 
-        }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "GPSLocator Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.gears.yashodhan.speechy/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(mGoogleApiClient, viewAction);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "GPSLocator Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.gears.yashodhan.speechy/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(mGoogleApiClient, viewAction);
-        mGoogleApiClient.disconnect();
-    }
 
     /**
      * Manipulates the map once available.
@@ -103,17 +45,16 @@ public class GPSLocatorActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+//        LatLng myLocation = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+//        mMap.a
+//        mMap.addMarker(new MarkerOptions().position(myLocation).title("Marker in your Current location"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
+        mMap.setOnMyLocationButtonClickListener(this);
+        enableMyLocation();
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
-
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
+    private void enableMyLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -124,23 +65,15 @@ public class GPSLocatorActivity extends FragmentActivity implements OnMapReadyCa
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null) {
-            Log.d(TAG,"got Location:");
-            Log.d(TAG,String.valueOf(mLastLocation.getLatitude()));
-            Log.d(TAG,String.valueOf(mLastLocation.getLongitude()));
+        mMap.setMyLocationEnabled(true);
 
-        }
-    }
-
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.d(TAG,"connection Suspended");
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d(TAG,"connection Failed");
+    public boolean onMyLocationButtonClick() {
+        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        // Return false so that we don't consume the event and the default behavior still occurs
+        // (the camera animates to the user's current position).
+        return false;
     }
 }

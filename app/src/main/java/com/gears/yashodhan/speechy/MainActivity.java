@@ -3,6 +3,7 @@ package com.gears.yashodhan.speechy;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.AlarmClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -13,24 +14,34 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.regex.Matcher;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
     //Vars
-    private static final String TAG = "spchActivity";
+    private static final String TAG = "speechActivity";
     TextView mText;
     TextView spText;
     ArrayList data;
     SpeechRecognizer speechRecog;
 
-    String VoicePattern = "\\wlay\\smusi[ck]";
-    String LocationPattern = "where\\s?am\\s?[iI]";
-    String CombinedPattern = VoicePattern + "|" + LocationPattern;
-
-    Pattern r,s1,t;
-
+    private static final HashMap<String,String> regexMatchers;
+    static {
+        regexMatchers = new HashMap<>();
+        regexMatchers.put("Music","\\wlay\\s?musi[ck]");
+        regexMatchers.put("Location","where[\\s\\w+]?am\\s?i");
+        regexMatchers.put("Timer","set\\s?timer\\s?(for\\s+(\\d*))?");
+    }
+    HashMap<String,Pattern> speechPatterns = new HashMap<>();
+    private static final HashMap<String,Class> listOfActivities;
+    static {
+        listOfActivities = new HashMap<>();
+        listOfActivities.put("MusicPattern",musicPlayer.class);
+        listOfActivities.put("LocationPattern",GPSLocatorActivity.class);
+        //listOfActivities.put("TimerPattern",);
+    }
     Context mContext = this;
     //End of Vars
 
@@ -40,10 +51,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mText = (TextView) findViewById(R.id.errorText);
         spText = (TextView) findViewById(R.id.speechText);
-        r = Pattern.compile(VoicePattern);
-        s1 = Pattern.compile(LocationPattern);
-        t = Pattern.compile(CombinedPattern);
-        Toast.makeText(mContext,"Created",Toast.LENGTH_SHORT);
+        speechPatterns.put("MusicPattern",Pattern.compile(regexMatchers.get("Music")));
+        speechPatterns.put("LocationPattern",Pattern.compile(regexMatchers.get("Location")));
+        speechPatterns.put("TimerPattern",Pattern.compile(regexMatchers.get("Timer")));
     }
 
     public void initVoiceRecog(View v){
@@ -62,8 +72,15 @@ public class MainActivity extends AppCompatActivity {
 //
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mText.setText("");
+        spText.setText("");
+    }
 
-    public void OnDestroy(){
+    @Override
+    protected void onDestroy() {
         super.onDestroy();
         speechRecog.stopListening();
         speechRecog.destroy();
@@ -74,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         public void onReadyForSpeech(Bundle params)
         {
             Log.d(TAG, "onReadyForSpeech");
-
         }
         public void onBeginningOfSpeech()
         {
@@ -88,42 +104,42 @@ public class MainActivity extends AppCompatActivity {
         {
             Log.d(TAG, "onBufferReceived");
         }
-        public void onEndOfSpeech()
-        {
+        public void onEndOfSpeech(){
             Log.d(TAG, "onEndofSpeech");
             Toast.makeText(mContext,"Finished",Toast.LENGTH_SHORT).show();
         }
-        public void onError(int error)
-        {
+        public void onError(int error){
             Log.d(TAG,  "error " +  error);
 
 
         }
         public void onResults(Bundle results)
         {
-
             Log.d(TAG, "onResults " + results);
             data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            for (int i = 0; i < data.size(); i++)
-            {
-                Log.d(TAG, "result " + data.get(i));
-            }
-            int s = data.size()-1;
-            spText.setText(String.valueOf(data.get(s)));
             if(data.size()!=0) {
-                Matcher m = r.matcher(data.get(data.size() - 1).toString().toLowerCase());
-                Matcher n = s1.matcher(data.get(data.size() - 1).toString().toLowerCase());
-                if ( m.find()) {
-                    Intent i = new Intent(mContext, musicPlayer.class);
-                    mText.setText("starting activity");
-                    startActivity(i);
-                }
-                if(n.find()){
-                    Intent i = new Intent(mContext,GPSLocatorActivity.class);
-                    mText.setText("Starting Activity");
-                    startActivity(i);
-                }
+                int lastIndex = data.size()-1;
+                String processedString = data.get(lastIndex).toString().toLowerCase();
+                spText.setText(String.valueOf(data.get(lastIndex)));
 
+                for(Map.Entry<String,Pattern> entry:speechPatterns.entrySet()){
+                    if(entry.getValue().matcher(processedString).find()){
+                        Intent i;
+                        if(entry.getKey()=="TimerPattern"){
+                            Log.d(TAG, String.valueOf(entry.getValue().matcher(processedString).groupCount()));
+                            i = new Intent(AlarmClock.ACTION_SET_TIMER);
+                            if(entry.getValue().matcher(processedString).groupCount()>0){
+                                //i.putExtra(AlarmClock.EXTRA_LENGTH,Integer.getInteger(entry.getValue().matcher(processedString).group(1)));
+                            }
+                        }
+                        else {
+                            i = new Intent(mContext, listOfActivities.get(entry.getKey()));
+                        }
+                        mText.setText("starting activity");
+                        startActivity(i);
+                        break;
+                    }
+                }
             }
         }
         public void onPartialResults(Bundle partialResults)
