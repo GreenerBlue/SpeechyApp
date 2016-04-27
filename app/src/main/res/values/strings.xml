@@ -4,4 +4,5 @@
     <string name="title_activity_music">MusicActivity</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_gpslocator">Map</string>
+    <string name="startActivityText">Starting Activity</string>
 </resources>

@@ -7,6 +7,7 @@ import android.provider.AlarmClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -42,12 +43,13 @@ public class MainActivity extends AppCompatActivity {
         listOfActivities.put("LocationPattern",GPSLocatorActivity.class);
         //listOfActivities.put("TimerPattern",);
     }
-    Context mContext = this;
+    Context mContext;
     //End of Vars
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         setContentView(R.layout.activity_main);
         mText = (TextView) findViewById(R.id.errorText);
         spText = (TextView) findViewById(R.id.speechText);
@@ -82,10 +84,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        speechRecog.stopListening();
-        speechRecog.destroy();
+        if (speechRecog != null) {
+            speechRecog.stopListening();
+            speechRecog.destroy();
+        }
     }
-
     public class listener implements RecognitionListener{
 
         public void onReadyForSpeech(Bundle params)
@@ -117,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         {
             Log.d(TAG, "onResults " + results);
             data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            if(data.size()!=0) {
+            if((data != null ? data.size() : 0) !=0) {
                 int lastIndex = data.size()-1;
                 String processedString = data.get(lastIndex).toString().toLowerCase();
                 spText.setText(String.valueOf(data.get(lastIndex)));
@@ -125,17 +128,18 @@ public class MainActivity extends AppCompatActivity {
                 for(Map.Entry<String,Pattern> entry:speechPatterns.entrySet()){
                     if(entry.getValue().matcher(processedString).find()){
                         Intent i;
-                        if(entry.getKey()=="TimerPattern"){
+                        if(entry.getKey().equals("TimerPattern")){
                             Log.d(TAG, String.valueOf(entry.getValue().matcher(processedString).groupCount()));
                             i = new Intent(AlarmClock.ACTION_SET_TIMER);
-                            if(entry.getValue().matcher(processedString).groupCount()>0){
-                                //i.putExtra(AlarmClock.EXTRA_LENGTH,Integer.getInteger(entry.getValue().matcher(processedString).group(1)));
+                            int timeInSeconds = getSecondsFromString(processedString,"for");
+                            if(timeInSeconds!=0){
+                                i.putExtra(AlarmClock.EXTRA_LENGTH,timeInSeconds);
                             }
                         }
                         else {
                             i = new Intent(mContext, listOfActivities.get(entry.getKey()));
                         }
-                        mText.setText("starting activity");
+                        mText.setText(R.string.startActivityText);
                         startActivity(i);
                         break;
                     }
@@ -150,6 +154,31 @@ public class MainActivity extends AppCompatActivity {
         {
             Log.d(TAG, "onEvent " + eventType);
         }
+    }
+
+    /**
+     * Gets the total seconds from the given string
+     * @param mainStr the string from which the value is to be extracted
+     * @param lookAfterToken the token after which the numbers exist,<p>
+     *                       this is to make the search faster, default is null
+     * @return returns the found integer value
+     * */
+    private int getSecondsFromString(String mainStr,@Nullable String lookAfterToken){
+        int index;
+        int seconds = 0;
+        if (lookAfterToken != null)
+            index = mainStr.lastIndexOf(lookAfterToken);
+        else index = 0;
+
+        for (int i = index; i<mainStr.length();i++){
+            if(Character.isDigit( mainStr.charAt(i))&&Character.isDigit( mainStr.charAt(i+1)))
+                seconds = seconds*10+(int)mainStr.charAt(i);
+            else if(Character.isDigit( mainStr.charAt(i))&& !Character.isDigit( mainStr.charAt(i+1))){
+                seconds = seconds *10 + (int)mainStr.charAt(i);
+                break;
+                }
+        }
+        return seconds;
     }
 }
 
