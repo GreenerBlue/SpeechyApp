@@ -124,14 +124,14 @@ public class MainActivity extends AppCompatActivity {
                 int lastIndex = data.size()-1;
                 String processedString = data.get(lastIndex).toString().toLowerCase();
                 spText.setText(String.valueOf(data.get(lastIndex)));
-
+                Log.d(TAG, "data " + processedString);
                 for(Map.Entry<String,Pattern> entry:speechPatterns.entrySet()){
                     if(entry.getValue().matcher(processedString).find()){
                         Intent i;
                         if(entry.getKey().equals("TimerPattern")){
-                            Log.d(TAG, String.valueOf(entry.getValue().matcher(processedString).groupCount()));
                             i = new Intent(AlarmClock.ACTION_SET_TIMER);
                             int timeInSeconds = getSecondsFromString(processedString,"for");
+                            Log.d(TAG,"This is the value" + String.valueOf(timeInSeconds));
                             if(timeInSeconds!=0){
                                 i.putExtra(AlarmClock.EXTRA_LENGTH,timeInSeconds);
                             }
@@ -164,22 +164,21 @@ public class MainActivity extends AppCompatActivity {
      * @return returns the found integer value
      * */
     private int getSecondsFromString(String mainStr,@Nullable String lookAfterToken){
-        int index;
+        int index = 0;
         int seconds = 0;
-        if (lookAfterToken != null)
+        if (lookAfterToken != null && mainStr.contains(lookAfterToken)){
             index = mainStr.lastIndexOf(lookAfterToken);
-        else index = 0;
-
-        for (int i = index; i<mainStr.length();i++){
-            if(Character.isDigit( mainStr.charAt(i))&&Character.isDigit( mainStr.charAt(i+1)))
-                seconds = seconds*10+(int)mainStr.charAt(i);
-            else if(Character.isDigit( mainStr.charAt(i))&& !Character.isDigit( mainStr.charAt(i+1))){
-                seconds = seconds *10 + (int)mainStr.charAt(i);
-                break;
+            Log.d(TAG,mainStr);
+            for (int i = index+lookAfterToken.length(); i<mainStr.length();i++){
+                if(Character.isDigit( mainStr.charAt(i))){
+                    Log.d(TAG,String.valueOf(i)+" : " + mainStr.charAt(i));
+                    seconds = seconds*10+Integer.parseInt(String.valueOf(mainStr.charAt(i)));
                 }
-        }
+            }
+
         return seconds;
+        }
+        else return 0;
+
     }
 }
-
-
